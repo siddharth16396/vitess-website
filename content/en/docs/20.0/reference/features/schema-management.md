@@ -109,6 +109,39 @@ The `ApplySchema` command supports these commands:
 
 `ApplySchema` does not support creation or modifications of stored routines, including functions, procedures, triggers, and events.
 
+#### Schema Migration Control Flags
+
+Vitess provides several control flags to manage schema migration behavior:
+
+##### postpone-complete Flag
+
+The `postpone-complete` flag allows administrators to postpone the completion phase of online schema migrations. When this flag is enabled:
+
+* The migration will proceed through preparation and execution phases normally
+* The final completion phase (including cleanup operations) will be deferred
+* Administrators can manually trigger completion at a more convenient time
+* This provides additional control over when potentially disruptive final operations occur
+
+This flag is particularly useful for:
+
+* Coordinating schema changes across multiple environments
+* Ensuring completion occurs during planned maintenance windows
+* Providing additional validation time before final migration completion
+
+To use the `postpone-complete` flag:
+
+```sql
+-- Example: ALTER TABLE with postponed completion
+ALTER TABLE users ADD COLUMN email VARCHAR(255), @@ddl_strategy='vitess --postpone-complete'
+```
+
+The migration can be completed later using:
+
+```sql
+-- Complete the postponed migration
+ALTER VITESS_MIGRATION '<migration_uuid>' COMPLETE
+```
+
 ### ApplyVSchema
 
 The [`ApplyVSchema`](../../../reference/programs/vtctl/#applyvschema) command applies the specified VSchema to the keyspace. The VSchema can be specified as a string or in a file.
